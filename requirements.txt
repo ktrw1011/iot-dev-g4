@@ -1,0 +1,9 @@
+# web側
+fastapi
+websockets
+uvicorn
+jinja2
+
+# webに送る側
+pyserial
+websocket-client

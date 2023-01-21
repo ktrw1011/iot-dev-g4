@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>よく噛んで健康に</title>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.js"></script>
+
+        <!-- Compiled and minified CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+        <!-- Compiled and minified JavaScript -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    </head>
+<body>
+    
+<nav class="light-blue lighten-1" role="navigation">
+    <div class="nav-wrapper container">
+        <a id="logo-container" class="brand-logo">よくかんでたべよう：かむかむチェッカー</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="section">
+        <div class="row">
+            <div class="col s3" style="margin-top: 60px;">
+                食事メニュー：たまごかけごはん
+            </div>
+            <div class="col s9">
+                <canvas id="canvas", title="咀嚼データ" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<footer class="page-footer orange">
+    <div class="footer-copyright">
+        <div class="container">
+        Made by <a class="orange-text text-lighten-3" href="http://materializecss.com">IoT開発特論グループ4</a>
+        </div>
+    </div>
+</footer>
+    
+    <script>
+        const config = {
+            type: 'line',
+            data: {
+                labels: Array(30).fill("0000-00-00 00:00:00"),
+                datasets: [{
+                    label: "咀嚼",
+                    backgroundColor: 'rgb(255, 99, 132)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    data: Array(30).fill(null),
+                    fill: false,
+                }],
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: '咀嚼データ'
+                },
+                tooltips: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: true
+                },
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Time'
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Value'
+                        }
+                    }]
+                }
+            }
+        };
+
+        const context = document.getElementById('canvas').getContext('2d');
+
+        window.lineChart = new Chart(context, config);
+
+        const socket = new WebSocket("ws://localhost:8000/ws");
+
+        socket.onopen = function(event) {
+            console.log("WebSocket is open now.");
+        };
+
+        socket.onmessage = function (event) {
+            console.log(event.data)
+            const data = JSON.parse(event.data);
+            if (config.data.labels.length === 30) {
+                config.data.labels.shift();
+                config.data.datasets[0].data.shift();
+            }
+            config.data.labels.push(data.time);
+            config.data.datasets[0].data.push(data.value);
+            window.lineChart.update();
+        }
+    </script>
+    
+</body>
+</html>
